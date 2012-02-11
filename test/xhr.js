@@ -50,43 +50,82 @@ test( "asynchron mode" , function() {
 });
 }
 
-function MockAjaxRequest() {
+function MockAjaxRequest( interactive ) {
 	this.responseText = "";
 	this.readyState = "";
 	this.status = "";
+	this._interactive = ( interactive == true );
 }
 MockAjaxRequest.inherits(AjaxRequest);
 (function(self){
-
-	self.open = function(method, location, async) {
-		this.async = (async == AjaxRequest.MODE_ASYNC);
-		this.readyState = AjaxRequest.STATE_LOADING;
-		if (this.onreadystatechange instanceof Function) {
-			this.onreadystatechange();
+	function setReadyState( obj, state ) {
+		obj.readyState = state;
+		if ( obj.onreadystatechange instanceof Function ) {
+			obj.onreadystatechange.call( obj );
 		}
+	}
+	
+	self.open = function( method, location, async ) {
+		this.async = ( async == AjaxRequest.MODE_ASYNC );
+		setReadyState( this, AjaxRequest.STATE_LOADING );
 	};
 	self.abort = function() {};
 	self.setRequestHeader = function() {};
 	self.send = function() {
-		var obj = this;
-		function data() {
-			obj.readyState = AjaxRequest.STATE_INTERACTIVE;
-			if (obj.onreadystatechange instanceof Function) {
-				obj.onreadystatechange();
+		if ( ! this._interactive ) {
+			var obj = this;
+			function change() {
+				setReadyState( obj, AjaxRequest.STATE_INTERACTIVE );
+				setReadyState( obj, AjaxRequest.STATE_COMPLETE );
 			}
-			obj.readyState = AjaxRequest.STATE_COMPLETE;
-			if (obj.onreadystatechange instanceof Function) {
-				obj.onreadystatechange();
+			if (this.async) {
+				setTimeout(change, 100);
+			} else {
+				change();
 			}
-		}
-		if (this.async) {
-			setTimeout(data, 100);
-		} else {
-			data();
 		}
 	};
+	self._receive = function( data ) {
+		this.responseText += data;
+		setReadyState( this, AjaxRequest.STATE_INTERACTIVE );
+	};
+	self._close = function( data ) {
+		if (typeof data != 'undefined' )
+			this.responseText += data;
+		setReadyState( this, AjaxRequest.STATE_COMPLETE );
+	}
 
 })(MockAjaxRequest.prototype);
 
 xhrtest(AjaxRequest, "AjaxRequest");
 xhrtest(MockAjaxRequest, "MockAjaxRequest");
+
+test("utility methods", function() {
+	var xhr = new MockAjaxRequest( true ), log = [];
+	
+	xhr.onreadystatechange = function () {
+		log.push( [xhr.readyState, xhr.responseText] );
+	};
+	
+	xhr.open();
+	deepEqual( log, [ [AjaxRequest.STATE_LOADING, ""] ], 'Loading event raised automatically on open' );
+	log.clear();
+
+	xhr.send();
+	deepEqual( log, [ ], 'No event raised on send' );
+	log.clear();
+	
+	xhr._receive( "message\nwith\nnewlines" );
+	deepEqual( log, [ [AjaxRequest. STATE_INTERACTIVE, "message\nwith\nnewlines"] ], 'Data receiption can be emulated manually' );
+	log.clear();
+	
+	xhr._receive( " appended " );
+	deepEqual( log, [ [AjaxRequest. STATE_INTERACTIVE, "message\nwith\nnewlines appended "] ], 'responseText grows on data receiption' );
+	log.clear();
+	
+	xhr._close( " final " );
+	deepEqual( log, [ [AjaxRequest. STATE_COMPLETE, "message\nwith\nnewlines appended  final "] ], 'responseText grows on connection close' );
+	log.clear();
+	
+});
+

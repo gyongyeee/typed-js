@@ -234,3 +234,10 @@ test("toString", function() {
 	ok("value" == o.toString());
 	ok("value" == ("" + o));
 });
+
+test("array clear", function() {
+	var a = [1, 2, 3, 4];
+	ok( a.clear instanceof Function, "Array.clear is defined");
+	ok( a === a.clear(), "Array.clear returns the array itself");
+	deepEqual( [], a, "The array is empty after calling clear()");
+});

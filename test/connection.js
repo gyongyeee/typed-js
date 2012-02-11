@@ -11,6 +11,7 @@ test('Events', function(){
 		};
 	}
 	var o = new Connection( 'http://localhost/', 'uclt.cgi' );
+	o.xhr = new MockAjaxRequest();
 	
 	deepEqual( o.commands, [], 'No commands registered by default' );
 	equal( o.opened, false, 'New connection is not opened automatically' );
@@ -38,4 +39,4 @@ test('Events', function(){
 	deepEqual( log, ['open', 'command1\n', 'close', 'open', 'command2\n'], 'Connection closed and reopened' );
 
 });
-*/
+//*/

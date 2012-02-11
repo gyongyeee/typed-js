@@ -10,3 +10,4 @@ function assertConstructor( Klass, Base ) {
 		ok(o instanceof Base, 'Created object is instance of the base');
 	}
 }
+

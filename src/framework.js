@@ -141,4 +141,11 @@ function overload(functions) {
 	};
 }
 
+/**
+ * Remove all elements from an array
+ */
+Array.prototype.clear = function(){
+	[].splice.call( this, 0, this.length );
+	return this;
+};
 
