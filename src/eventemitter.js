@@ -22,6 +22,7 @@ EventEmitter.prototype.hasEvent = function(event) {
 };
 EventEmitter.prototype.emit = function(event, params) {
 	getargs(arguments, [String], [], Object);
+	params = defval(params, []);
 	if (!this.hasEvent(event)) {
 		throw new EventEmitter.UndefinedEventException(event);
 	}

@@ -37,6 +37,10 @@ test('Manipulating listeners', function(){
 	var log = [];
 	function handler1(a, b) {
 		ok(o === this, 'Context is the emitter object');
+		if (typeof a == 'undefined') {
+			log.push('on1');
+			return false;
+		}
 		log.push('on1', a.valueOf(), b.valueOf());
 		if (a.valueOf()) return b;
 	}
@@ -54,21 +58,32 @@ test('Manipulating listeners', function(){
 	raises(function() {
 		o.emit('something');
 	}, 'Only registered events may be emitted');
+	
 	o.emit('some');
 	deepEqual(log, [], 'Handler is specific for an event');
+	log.clear();
+	
+	o.emit('event');
+	deepEqual(log, ['on1'], 'Event parameter is not required');
+	log.clear();
+	
 	o.emit('event', true, false);
 	deepEqual(log, ['on1', true, false], 'Returning false stops propagation');
-	log = [];
+	log.clear();
+	
 	o.emit('event', true, true);
 	deepEqual(log, ['on1', true, true, 'on2', true, true], 'Returning true continues propagation');
-	log = [];
+	log.clear();
+	
 	raises(function() {
 		o.emit('event', true, o);
 	}, 'Handler must return bool or undefined');
 	deepEqual(log, ['on1', true, o], 'Returning non-bool throws an exception');
-	log = [];
+	log.clear();
+	
 	o.emit('event', false, 42);
 	deepEqual(log, ['on1', false, 42, 'on2', false, 42], 'Returning undefined continues propagation');
+	log.clear();
 	
 	ok(o.getListeners instanceof Function);
 	raises(function () {

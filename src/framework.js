@@ -115,7 +115,7 @@ function getargs(params, required, optional, variable) {
 			break;
 		}
 	}
-	if (variable && params[last]) {
+	if ( variable && params[last] ) {
 		params[last] = rest;
 	}
 }

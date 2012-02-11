@@ -175,7 +175,7 @@ test("getargs helper", function() {
 		getargs(arguments, [String], [Number], RegExp);
 		ok(a instanceof String, 'Required argument typecasted');
 		ok((typeof b == 'undefined') || (b instanceof Number), 'Optional argument typecasted');
-		ok((typeof rest == 'undefined') || rest instanceof Array, 'Last variable collects extra parameters');
+		ok((typeof rest == 'undefined') || rest instanceof Array, 'Last variable collects extra parameters if any into an array');
 		if (rest && rest.length)
 		for (var i = 0; i < rest.length; i++) {
 			ok(rest[i] instanceof RegExp, 'Extra parameters typecasted');
