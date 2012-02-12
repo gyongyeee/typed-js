@@ -2,7 +2,7 @@ module('Connection');
 test('Constructor', function() {
 	assertConstructor( Connection, EventEmitter );
 });
-/*
+
 test('Events', function(){
 	var log = [];
 	function logger(title) {
@@ -11,7 +11,7 @@ test('Events', function(){
 		};
 	}
 	var o = new Connection( 'http://localhost/', 'uclt.cgi' );
-	o.xhr = new MockAjaxRequest();
+	o.xhr = new MockAjaxRequest( true );
 	
 	deepEqual( o.commands, [], 'No commands registered by default' );
 	equal( o.opened, false, 'New connection is not opened automatically' );
@@ -25,18 +25,23 @@ test('Events', function(){
 	o.registerCommand( 'command1' );
 	deepEqual( o.commands, ['command1'], 'Command registered in closed connection' );
 	equal( o.opened, false, 'Connection is still not opened' );
+	equal( o.xhr._dataSent, '', 'Commands not sent on register' );
 	
 	deepEqual( log, [], 'No event raised initially' );
 	o.open();
 	
-	deepEqual( log, ['open', 'command1\n'], 'Open event raised' );
-	console.log(log);
+	deepEqual( log, ['open'], 'Open event raised' );
+	equal( o.xhr._dataSent, 'command1\n', 'Commands sent on open' );
 	
 	o.registerCommand( 'command2' );
 
-	console.log(log);
 	deepEqual( o.commands, ['command1', 'command2'], 'Command registered in opened connection' );
-	deepEqual( log, ['open', 'command1\n', 'close', 'open', 'command2\n'], 'Connection closed and reopened' );
+	deepEqual( log, ['open', 'close'], 'Connection closed' );
+	QUnit.stop();
+	setTimeout(function(){
+		deepEqual( log, ['open', 'close', 'open'], 'Connection reopened after some delay' );
+		equal( o.xhr._dataSent, 'command1\ncommand1\ncommand2\n', 'Commands sent on reopen' );
+		QUnit.start();
+	}, 1000);
 
 });
-//*/

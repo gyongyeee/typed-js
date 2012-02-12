@@ -28,7 +28,7 @@ test( "synchronous mode" , function() {
 	ok( lastState == AjaxRequest.STATE_COMPLETE, 'Complete event raised after load in case of synchronous request' );
 });
 test( "asynchron mode" , function() {
-	var xhr = new Request();
+	var xhr = new Request(), loading = false, complete = false;
 	
 	var lastState = -1;
 	xhr.onreadystatechange = function () {
@@ -36,13 +36,14 @@ test( "asynchron mode" , function() {
 		/**
 		 * Measure loading and complete events only because of browser inconsystencies
 		 */
-		if ( (lastState != xhr.readyState) && ((xhr.readyState == AjaxRequest.STATE_LOADING) || (xhr.readyState == AjaxRequest.STATE_COMPLETE)) ){
+		if (xhr.readyState == AjaxRequest.STATE_LOADING) loading = true;
+		if (xhr.readyState == AjaxRequest.STATE_COMPLETE) {
+			complete = true;
 			QUnit.start();
 		}
 		lastState = xhr.readyState;
 	}
 	xhr.open( 'GET', document.location.href, AjaxRequest.MODE_ASYNC );
-	QUnit.stop();
 	QUnit.stop();
 	ok( lastState == AjaxRequest.STATE_LOADING, 'Loading event raised after opening an asynchronous request' );
 	xhr.send( null );
@@ -55,6 +56,7 @@ function MockAjaxRequest( interactive ) {
 	this.readyState = "";
 	this.status = "";
 	this._interactive = ( interactive == true );
+	this._dataSent = "";
 }
 MockAjaxRequest.inherits(AjaxRequest);
 (function(self){
@@ -71,7 +73,9 @@ MockAjaxRequest.inherits(AjaxRequest);
 	};
 	self.abort = function() {};
 	self.setRequestHeader = function() {};
-	self.send = function() {
+	self.send = function( data ) {
+		if (typeof data != 'undefined')
+			this._dataSent += data;
 		if ( ! this._interactive ) {
 			var obj = this;
 			function change() {
@@ -113,6 +117,11 @@ test("utility methods", function() {
 
 	xhr.send();
 	deepEqual( log, [ ], 'No event raised on send' );
+	log.clear();
+	
+	xhr.send( "data" );
+	deepEqual( log, [ ], 'No event raised on send' );
+	deepEqual( xhr._dataSent, "data", "Send method saves sent data" );
 	log.clear();
 	
 	xhr._receive( "message\nwith\nnewlines" );

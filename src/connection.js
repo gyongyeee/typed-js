@@ -12,6 +12,15 @@ function Connection( path, cgi ) {
 	this.opened = false;
 	this.autoreconnect = true;
 	this.url = path + cgi;
+	var obj = this;
+	obj.on( 'close', function() {
+		obj.xhr.abort();
+		if ( obj.autoreconnect ){
+			setTimeout(function(){ 
+				obj.open(); 
+			}, 500);
+		}
+	} );
 }
 Connection.DEFAULT_PATH = document.location.href;
 Connection.DEFAULT_CGI = '';
@@ -28,7 +37,7 @@ Connection.inherits( EventEmitter );
 		if ( this.opened ) {
 			this.emit('close');
 		}
-		this.commands.push( command );
+		this.commands.push( command.valueOf() );
 	}
 	
 	self.open = function() {
@@ -38,12 +47,6 @@ Connection.inherits( EventEmitter );
 		
 		xhr.open('POST', this.url, true);
 		
-		obj.on( 'close', function() {
-			xhr.abort();
-			if ( obj.autoreconnect ){
-				obj.open();
-			}
-		} );
 		obj.opened = true;
 		
 		function onreadystatechange() {
