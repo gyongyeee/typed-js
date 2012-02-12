@@ -241,3 +241,17 @@ test("array clear", function() {
 	ok( a === a.clear(), "Array.clear returns the array itself");
 	deepEqual( [], a, "The array is empty after calling clear()");
 });
+
+test("array indexOf", function() {
+	var a = ["a", "b", "b", "a", "b"];
+	ok( a.indexOf instanceof Function, "Array.indexOf is defined");
+	equal( a.indexOf("a"), 0, "Finds the first element" );
+	equal( a.indexOf("b"), 1, "Finds any element" );
+	equal( a.indexOf("c"), -1, "Returns -1 for non-element" );
+	equal( a.indexOf("b", 2), 2, "Second parameter is the starting position" );
+	equal( a.indexOf("b", 6), -1, "Too big position results -1" );
+	equal( a.indexOf("a", -2), 3, "Negative position counts from the end" );
+	equal( a.indexOf("a", -1), -1, "Negative position counts from the end" );
+	equal( a.indexOf("b", -1), 4, "Finds the last element" );
+	
+});

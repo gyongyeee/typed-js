@@ -144,8 +144,37 @@ function overload(functions) {
 /**
  * Remove all elements from an array
  */
-Array.prototype.clear = function(){
+if (!Array.prototype.clear)
+Array.prototype.clear = function() {
 	[].splice.call( this, 0, this.length );
 	return this;
 };
 
+/**
+ * Find the position of an element in the array
+ * 
+ * @param Object elt Element to search for
+ * @param Number from Index to start search from, negative values count from the end of the array 
+ * @return Number Index of the element or -1
+ */
+if (!Array.prototype.indexOf)
+Array.prototype.indexOf = function(elt, from) {
+	getargs( arguments, [ Object ], [ Number ] );
+    var len = this.length;
+    // Start from the beginning by default
+    from = defval( from,  0 );
+    // Can not search after the end
+    if ( from >= len ) return -1;
+    // Only integer indices are allowed
+    from = ( ( from < 0 ) ? Math.ceil( from ) : Math.floor( from ) );
+    // Negative position counts from the end 
+    if ( from < 0 ) from += len;
+    // There are no elements before the first
+    if ( from < 0 ) from = 0;
+
+    for ( ; from < len; from++ ) {
+      if ( from in this && this[from] == elt )
+        return from;
+    }
+    return -1;
+  };
